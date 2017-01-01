@@ -82,15 +82,8 @@ namespace Phaka.Scheduling
             var status = mapping.GetOrAdd(item, ActivityStatus.Pending);
             return status == ActivityStatus.Pending;
         }
-
-        internal class Activity
-        {
-            public Func<Task> Action { get; set; }
-
-            public ActivityStatus Status { get; set; }
-        }
-
-        internal enum ActivityStatus
+        
+        private enum ActivityStatus
         {
             Pending,
             Running,
