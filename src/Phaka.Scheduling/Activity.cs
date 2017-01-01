@@ -23,6 +23,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Phaka.Scheduling.Abstractions;
 
 namespace Phaka.Scheduling
 {
@@ -39,6 +40,8 @@ namespace Phaka.Scheduling
 
         public Func<T1, T2, T3, CancellationToken, Task> Func { get; }
 
+        public T1 Item1 { get; }
+
         public T2 Item2 { get; }
 
         public T3 Item3 { get; }
@@ -50,7 +53,10 @@ namespace Phaka.Scheduling
             return Func(Item1, Item2, Item3, cancellationToken);
         }
 
-        public T1 Item1 { get; }
+        public override string ToString()
+        {
+            return $"({Key}, {Item1}, {Item2}, {Item3})";
+        }
     }
 
     public class Activity<T1, T2, T3, T4> : IActivity
@@ -82,6 +88,11 @@ namespace Phaka.Scheduling
         {
             return Func(Item1, Item2, Item3, Item4, cancellationToken);
         }
+
+        public override string ToString()
+        {
+            return $"({Key}, {Item1}, {Item2}, {Item3}, {Item4})";
+        }
     }
 
     public class Activity<T1, T2> : IActivity
@@ -96,6 +107,8 @@ namespace Phaka.Scheduling
 
         public Func<T1, T2, CancellationToken, Task> Func { get; }
 
+        public T1 Item1 { get; }
+
         public T2 Item2 { get; }
 
         public string Key { get; }
@@ -105,7 +118,10 @@ namespace Phaka.Scheduling
             return Func(Item1, Item2, cancellationToken);
         }
 
-        public T1 Item1 { get; }
+        public override string ToString()
+        {
+            return $"({Key}, {Item1}, {Item2})";
+        }
     }
 
 
@@ -120,6 +136,8 @@ namespace Phaka.Scheduling
 
         public Func<T1, CancellationToken, Task> Func { get; }
 
+        public T1 Item1 { get; }
+
         public string Key { get; }
 
         public Task ExecuteAsync(CancellationToken cancellationToken = new CancellationToken())
@@ -127,7 +145,10 @@ namespace Phaka.Scheduling
             return Func(Item1, cancellationToken);
         }
 
-        public T1 Item1 { get; }
+        public override string ToString()
+        {
+            return $"({Key}, {Item1})";
+        }
     }
 
     public class Activity : IActivity
@@ -151,6 +172,11 @@ namespace Phaka.Scheduling
         public Task ExecuteAsync(CancellationToken cancellationToken = new CancellationToken())
         {
             return Func(cancellationToken);
+        }
+
+        public override string ToString()
+        {
+            return $"({Key})";
         }
     }
 }

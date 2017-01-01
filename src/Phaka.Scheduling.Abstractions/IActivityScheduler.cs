@@ -1,4 +1,4 @@
-﻿// The MIT License (MIT)
+// The MIT License (MIT)
 // 
 // Copyright (c) 2016 Werner Strydom
 // 
@@ -22,13 +22,13 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Phaka.Collections;
 
-namespace Phaka.Scheduling
+namespace Phaka.Scheduling.Abstractions
 {
-    public interface IActivity
+    public interface IActivityScheduler<T> where T : IActivity
     {
-        string Key { get; }
-
-        Task ExecuteAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task ScheduleAsync(IDependencyGraph<T> graph,
+            CancellationToken cancellationToken = new CancellationToken());
     }
 }
