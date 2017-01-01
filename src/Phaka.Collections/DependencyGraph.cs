@@ -84,5 +84,38 @@ namespace Phaka.Collections
         {
             return AdjacencyList.Keys;
         }
+
+        public IDependencyGraph<T> GetSubgraph(Func<T, bool> func)
+        {
+            var array = GetNodes().Where(func).ToArray();
+            return GetSubgraph(array);
+        }
+
+        public IDependencyGraph<T> GetSubgraph(IEnumerable<T> nodes)
+        {
+            var stack = new Stack<T>(nodes);
+            var visited = new HashSet<T>();
+            var result = new DependencyGraph<T>();
+            while (stack.Count > 0)
+            {
+                var node = stack.Pop();
+                if (visited.Contains(node))
+                {
+                    continue;
+                }
+
+                foreach (var antecedent in GetAntecedents(node))
+                {
+                    if (!visited.Contains(antecedent))
+                    {
+                        stack.Push(antecedent);
+                    }
+                    result.AddDependency(antecedent, node);
+                }
+                visited.Add(node);
+            }
+
+            return result;
+        }
     }
 }

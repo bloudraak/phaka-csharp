@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using System;
 using System.Collections.Generic;
 
 namespace Phaka.Collections
@@ -27,6 +28,7 @@ namespace Phaka.Collections
     public interface IDependencyGraph<T>
     {
         int Count { get; }
+
         void Add(T item);
 
         void AddDependency(T antecedent, T dependent);
@@ -40,5 +42,8 @@ namespace Phaka.Collections
         IEnumerable<T> GetLeafNodes();
 
         IEnumerable<T> GetNodes();
+
+        IDependencyGraph<T> GetSubgraph(Func<T,bool> func);
+        IDependencyGraph<T> GetSubgraph(IEnumerable<T> nodes);
     }
 }
