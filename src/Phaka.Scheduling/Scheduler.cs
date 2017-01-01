@@ -33,7 +33,7 @@ namespace Phaka.Scheduling
     {
         public async Task ScheduleAsync<T>(IDependencyGraph<T> graph, Func<T, Task> activity)
         {
-            var mapping = new ConcurrentDictionary<T, ActivityStatus>();
+            var mapping = new ConcurrentDictionary<T, Status>();
             var running = new SynchronizedSet<Task>();
 
             do
@@ -52,7 +52,7 @@ namespace Phaka.Scheduling
 
                     if (canSchedule)
                     {
-                        mapping.AddOrUpdate(node, ActivityStatus.Running, (arg1, status) => ActivityStatus.Running);
+                        mapping.AddOrUpdate(node, Status.Running, (arg1, status) => Status.Running);
                         var task = ExecuteAsync(node, mapping, activity);
                         running.Add(task);
                     }
@@ -64,26 +64,26 @@ namespace Phaka.Scheduling
             await Task.WhenAll(running);
         }
 
-        private async Task ExecuteAsync<T>(T item, ConcurrentDictionary<T, ActivityStatus> mapping,
+        private async Task ExecuteAsync<T>(T item, ConcurrentDictionary<T, Status> mapping,
             Func<T, Task> activity)
         {
             await activity(item);
-            mapping.AddOrUpdate(item, ActivityStatus.Completed, (arg1, status) => ActivityStatus.Completed);
+            mapping.AddOrUpdate(item, Status.Completed, (arg1, status) => Status.Completed);
         }
 
-        private bool IsComplete<T>(T item, ConcurrentDictionary<T, ActivityStatus> mapping)
+        private bool IsComplete<T>(T item, ConcurrentDictionary<T, Status> mapping)
         {
-            var status = mapping.GetOrAdd(item, ActivityStatus.Pending);
-            return status == ActivityStatus.Completed;
+            var status = mapping.GetOrAdd(item, Status.Pending);
+            return status == Status.Completed;
         }
 
-        private bool IsPending<T>(T item, ConcurrentDictionary<T, ActivityStatus> mapping)
+        private bool IsPending<T>(T item, ConcurrentDictionary<T, Status> mapping)
         {
-            var status = mapping.GetOrAdd(item, ActivityStatus.Pending);
-            return status == ActivityStatus.Pending;
+            var status = mapping.GetOrAdd(item, Status.Pending);
+            return status == Status.Pending;
         }
         
-        private enum ActivityStatus
+        private enum Status
         {
             Pending,
             Running,
