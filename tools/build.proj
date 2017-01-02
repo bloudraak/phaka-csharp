@@ -58,17 +58,17 @@
       <Using Namespace="Microsoft.Build.Utilities" />
       <Code Type="Fragment" Language="cs">
         <![CDATA[
-                  try {
-                      OutputFilename = Path.GetFullPath(OutputFilename);
-                      WebClient webClient = new WebClient();
-                      webClient.DownloadFile("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe", OutputFilename);
-                      return true;
-                  }
-                  catch (Exception ex) {
-                      Log.LogErrorFromException(ex);
-                      return false;
-                  }
-                ]]>
+        try {
+            OutputFilename = Path.GetFullPath(OutputFilename);
+            WebClient webClient = new WebClient();
+            webClient.DownloadFile("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe", OutputFilename);
+            return true;
+        }
+        catch (Exception ex) {
+            Log.LogErrorFromException(ex);
+            return false;
+        }
+        ]]>
       </Code>
     </Task>
   </UsingTask>
