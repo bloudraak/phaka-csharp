@@ -21,17 +21,20 @@
 // SOFTWARE.
 
 using System.Reflection;
+using System.Resources;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("Phaka.Scheduling.UnitTests")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Unit Tests for Scheduling Activities")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Werner Strydom")]
 [assembly: AssemblyProduct("Phaka.Scheduling.UnitTests")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
+[assembly: AssemblyCopyright("Werner Strydom")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
+[assembly: NeutralResourcesLanguage("en-US")]
 [assembly: ComVisible(false)]
 [assembly: Guid("a6d02001-a4e9-4818-8bef-e0fd0bf927d7")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("0.1.0.0")]
+[assembly: AssemblyFileVersion("0.1.0.0")]
+[assembly: AssemblyInformationalVersion("0.1.0.0")]

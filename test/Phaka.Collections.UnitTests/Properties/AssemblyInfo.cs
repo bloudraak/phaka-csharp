@@ -21,17 +21,20 @@
 // SOFTWARE.
 
 using System.Reflection;
+using System.Resources;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("Phaka.Collections.UnitTests")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Phaka Collections Unit Tests")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Werner Strydom")]
 [assembly: AssemblyProduct("Phaka.Collections.UnitTests")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
+[assembly: AssemblyCopyright("Werner Strydom")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
+[assembly: NeutralResourcesLanguage("en-US")]
 [assembly: ComVisible(false)]
 [assembly: Guid("35eebe85-4a5a-4b56-a6d4-e54abab70d60")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("0.1.0.0")]
+[assembly: AssemblyFileVersion("0.1.0.0")]
+[assembly: AssemblyInformationalVersion("0.1.0.0")]

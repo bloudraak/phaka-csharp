@@ -2,11 +2,15 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <NuGetPath>$(MSBuildThisFileDirectory)\nuget.exe</NuGetPath>
+        <OutputDirectory>$(MSBuildThisFileDirectory)\..\dist</OutputDirectory>
     </PropertyGroup>
     <ItemGroup>
         <Solution Include="$(MSBuildThisFileDirectory)\..\**\*.sln">
             <Properties>Configuration=Release</Properties> 
         </Solution>
+    </ItemGroup>
+    <ItemGroup>
+        <NuSpec Include="$(MSBuildThisFileDirectory)\..\**\*.nuspec" />
     </ItemGroup>
     <Target Name="Build" DependsOnTargets="RestorePackages">
         <MSBuild Projects="@(Solution)" Targets="Build">
@@ -22,6 +26,7 @@
                 TaskParameter="TargetOutputs"  
                 ItemName="AssembliesBuiltByChildProjects" /> 
         </MSBuild>
+        <RemoveDir Directories="$(OutputDirectory)" />
     </Target>
     <Target Name="Rebuild">
         <MSBuild Projects="@(Solution)" Targets="Rebuild" Properties="Configuration=Release">
@@ -63,7 +68,52 @@
             </Code>
         </Task>
     </UsingTask>
+    <UsingTask TaskName="ReplaceExtension" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+        <ParameterGroup>
+            <Extension ParameterType="System.String" Required="true" />
+            <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />  
+            <Result ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />  
+        </ParameterGroup>
+        <Task>
+            <Reference Include="System.Core" />
+            <Using Namespace="System" />
+            <Using Namespace="System.IO" />
+            <Using Namespace="System.Net" />
+            <Using Namespace="Microsoft.Build.Framework" />
+            <Using Namespace="Microsoft.Build.Utilities" />
+            <Code Type="Fragment" Language="cs">
+                <![CDATA[
+                  try {
+                        if (Files.Length > 0)  
+                        {  
+                            Result = new TaskItem[Files.Length];  
+                            for (int i = 0; i < Files.Length; i++)  
+                            {  
+                                ITaskItem item = Files[i];  
+                                string path = item.GetMetadata("FullPath");  
+                                path = System.IO.Path.ChangeExtension(path, Extension);
+                                Result[i] = new TaskItem(path);
+                            }  
+                        }  
+                        return true;
+                  }
+                  catch (Exception ex) {
+                      Log.LogErrorFromException(ex);
+                      return false;
+                  }
+                ]]>
+            </Code>
+        </Task>
+    </UsingTask>
     <Target Name="RestorePackages" DependsOnTargets="InstallNuGet">
         <Exec Command="$(NuGetPath) restore &quot;%(Solution.FullPath)&quot; -NonInteractive" LogStandardErrorAsError="true"  Condition="'@(Solution)'!=''" />
+    </Target>
+    <Target Name="Package" DependsOnTargets="InstallNuGet">
+        <ReplaceExtension Extension="csproj" Files="@(NuSpec)">  
+            <Output ItemName="ProjectPaths" TaskParameter="Result" />  
+        </ReplaceExtension>
+        <MakeDir Directories="$(OutputDirectory)"/>   
+        
+        <Exec Command="$(NuGetPath) pack &quot;%(ProjectPaths.Identity)&quot; -NonInteractive -OutputDirectory &quot;$(OutputDirectory)&quot;" LogStandardErrorAsError="true"  Condition="'@(NuSpec)'!=''" />
     </Target>
 </Project>
