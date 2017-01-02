@@ -14,8 +14,6 @@
   <PropertyGroup>
     <MajorVersion Condition="'$(MajorVersion)' == ''">1</MajorVersion>
     <MinorVersion Condition="'$(MinorVersion)' == ''">0</MinorVersion>
-    <BuildNumber Condition="'$(BuildNumber)' == ''">0</BuildNumber>
-    <BranchName Condition="'$(BranchName)' == ''">develop</BranchName>
   </PropertyGroup>
   <ItemGroup>
     <Solution Include="$(MSBuildThisFileDirectory)..\**\*.sln">
