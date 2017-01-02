@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildThisFileDirectory)..\semver.props" Condition="Exists('$(MSBuildThisFileDirectory)..\semver.props')" />
   <PropertyGroup>
     <NuGetPath>$(MSBuildThisFileDirectory)nuget.exe</NuGetPath>
     <OutputDirectory>$(MSBuildThisFileDirectory)..\dist</OutputDirectory>
@@ -10,6 +9,7 @@
     <BuildNumber Condition="'$(BuildNumber)' == ''">$(BAMBOO_BUILDNUMBER)</BuildNumber>
     <BranchName Condition="'$(BranchName)' == ''">$(BAMBOO_REPOSITORY_BRANCH_NAME)</BranchName>
   </PropertyGroup>
+  <Import Project="$(MSBuildThisFileDirectory)..\semver.props" Condition="Exists('$(MSBuildThisFileDirectory)..\semver.props')" />
   <!-- GENERAL -->
   <PropertyGroup>
     <MajorVersion Condition="'$(MajorVersion)' == ''">1</MajorVersion>
