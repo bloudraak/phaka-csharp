@@ -124,25 +124,15 @@ The output looks as follows.
 -t5
 ```
 
-## Motivation
-
-The project was created to facilitate complex deployments that are autonomous. 
-
 ## Installation
 
-TODO
+To use Phaka Scheduling in your project, add the nuget package to your project using Visual Studio
 
-## API Reference
-
-TODO
+    Install-Package Phaka.Scheduling 
 
 ## Tests
 
 Tests are implemented in NUnit
-
-## Contribution
-
-TODO
 
 ## Contributors
 
