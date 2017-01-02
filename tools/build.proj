@@ -114,6 +114,6 @@
         </ReplaceExtension>
         <MakeDir Directories="$(OutputDirectory)"/>   
         
-        <Exec Command="$(NuGetPath) pack &quot;%(ProjectPaths.Identity)&quot; -NonInteractive -OutputDirectory &quot;$(OutputDirectory)&quot; -Properties Configuration=Release" LogStandardErrorAsError="true"  Condition="'@(NuSpec)'!=''" />
+        <Exec Command="$(NuGetPath) pack &quot;%(ProjectPaths.Identity)&quot; -NonInteractive -OutputDirectory &quot;$(OutputDirectory)&quot; -IncludeReferencedProjects -Properties Configuration=Release" LogStandardErrorAsError="true"  Condition="'@(NuSpec)'!=''" />
     </Target>
 </Project>
