@@ -1,11 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildThisFileDirectory)..\semver.props" Condition="Exists('$(MSBuildThisFileDirectory)..\semver.props')" />
   <PropertyGroup>
     <NuGetPath>$(MSBuildThisFileDirectory)nuget.exe</NuGetPath>
     <OutputDirectory>$(MSBuildThisFileDirectory)..\dist</OutputDirectory>
+  </PropertyGroup>
+  <!-- BAMBOO -->
+  <PropertyGroup>
     <BuildNumber Condition="'$(BuildNumber)' == ''">$(BAMBOO_BUILDNUMBER)</BuildNumber>
-    <BuildNumber Condition="'$(BuildNumber)' == ''">1</BuildNumber>
     <BranchName Condition="'$(BranchName)' == ''">$(BAMBOO_REPOSITORY_BRANCH_NAME)</BranchName>
+  </PropertyGroup>
+  <!-- GENERAL -->
+  <PropertyGroup>
+    <MajorVersion Condition="'$(MajorVersion)' == ''">1</MajorVersion>
+    <MinorVersion Condition="'$(MinorVersion)' == ''">0</MinorVersion>
+    <BuildNumber Condition="'$(BuildNumber)' == ''">0</BuildNumber>
     <BranchName Condition="'$(BranchName)' == ''">develop</BranchName>
   </PropertyGroup>
   <ItemGroup>
@@ -15,6 +24,9 @@
   </ItemGroup>
   <ItemGroup>
     <NuSpec Include="$(MSBuildThisFileDirectory)\..\**\*.nuspec" />
+  </ItemGroup>
+  <ItemGroup>
+    <AssemblyInfo Include="$(MSBuildThisFileDirectory)\..\**\AssemblyInfo.cs" />
   </ItemGroup>
   <Target Name="Build" DependsOnTargets="RestorePackages">
     <MSBuild Projects="@(Solution)" Targets="Build">
@@ -45,6 +57,103 @@
   <Target Name="_DownloadNuGet">
     <DownloadNuGet OutputFilename="$(NuGetPath)" Condition=" !Exists('$(NuGetPath)') " />
   </Target>
+  <Target Name="Version">
+    <Message Text="Inputs:" Importance="High" />
+    <Message Text="   Major Version...................: $(MajorVersion)" Importance="High" />
+    <Message Text="   Minor Version...................: $(MinorVersion)" Importance="High" />
+    <Message Text="   Build Number....................: $(BuildNumber)" Importance="High" />
+    <Message Text="   Branch Name.....................: $(BranchName)" Importance="High" />
+    
+    <Version MajorVersion="$(MajorVersion)" MinorVersion="$(MinorVersion)" BuildNumber="$(BuildNumber)" BranchName="$(BranchName)">
+      <Output PropertyName="AssemblyVersion" TaskParameter="AssemblyVersion" />
+      <Output PropertyName="AssemblyFileVersion" TaskParameter="AssemblyFileVersion" />
+      <Output PropertyName="AssemblyInformationalVersion" TaskParameter="AssemblyInformationalVersion" />
+    </Version>
+
+    <Message Text="Outputs:" Importance="High" />
+    <Message Text="   AssemblyVersion.................: $(AssemblyVersion)" Importance="High" />
+    <Message Text="   AssemblyFileVersion.............: $(AssemblyFileVersion)" Importance="High" />
+    <Message Text="   AssemblyInformationalVersion....: $(AssemblyInformationalVersion)" Importance="High" />
+    <Message Text=" " Importance="High" />
+  </Target>
+  <UsingTask TaskName="Version" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+    <ParameterGroup>
+      <MajorVersion ParameterType="System.Byte" Required="true" />
+      <MinorVersion ParameterType="System.Byte" Required="true" />
+      <BuildNumber ParameterType="System.Int32" Required="true" />
+      <BranchName ParameterType="System.String" Required="true" />
+      <AssemblyVersion ParameterType="System.String" Output="true" />
+      <AssemblyFileVersion ParameterType="System.String" Output="true" />
+      <AssemblyInformationalVersion ParameterType="System.String" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Reference Include="System.Core" />
+      <Using Namespace="System" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Net" />
+      <Using Namespace="Microsoft.Build.Framework" />
+      <Using Namespace="Microsoft.Build.Utilities" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+        try {
+            int buildNumber = BuildNumber;
+            int patchNumber = 0;
+            int majorVersion = MajorVersion;
+            int minorVersion = MinorVersion;
+            string branchName = BranchName;
+            
+            int index = branchName.LastIndexOf('/');
+            if(index > 0)
+            {
+              if(branchName.StartsWith("release/"))
+              {
+                var v = branchName.Substring(index+1);
+                var version = System.Version.Parse(v);
+                majorVersion = version.Major;
+                minorVersion = version.Minor;
+                if(version.Build > 0)
+                { 
+                  patchNumber = buildNumber;
+                  buildNumber = version.Build; 
+                }
+                else 
+                {
+                  patchNumber = 0 ;
+                }
+                branchName = "master";
+              }
+              else {
+                branchName = branchName.Substring(index+1);
+              }
+            }
+            branchName = branchName.Replace("-", "");
+            
+            AssemblyVersion = string.Format("{0}.{1}.0.0", majorVersion, minorVersion);
+            AssemblyFileVersion = string.Format("{0}.{1}.{2}.{3}", majorVersion, minorVersion, buildNumber, patchNumber);
+            if(branchName != "master")
+            {
+              if(patchNumber == 0)
+                AssemblyInformationalVersion = string.Format("{0}.{1}.{2}-{3}", majorVersion, minorVersion, buildNumber, branchName);
+              else
+                AssemblyInformationalVersion = string.Format("{0}.{1}.{2}.{3}-{4}", majorVersion, minorVersion, buildNumber, patchNumber, branchName);
+            }
+            else 
+            {
+              if(patchNumber == 0)
+                AssemblyInformationalVersion = string.Format("{0}.{1}.{2}", majorVersion, minorVersion, buildNumber);
+              else
+                AssemblyInformationalVersion = string.Format("{0}.{1}.{2}.{3}", majorVersion, minorVersion, buildNumber, patchNumber);
+            }
+            return true;
+        }
+        catch (Exception ex) {
+            Log.LogErrorFromException(ex);
+            return false;
+        }
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
   <UsingTask TaskName="DownloadNuGet" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
     <ParameterGroup>
       <OutputFilename ParameterType="System.String" Required="true" />
@@ -98,6 +207,46 @@
                     string path = item.GetMetadata("FullPath");
                     path = Path.ChangeExtension(path, Extension);
                     Result[i] = new TaskItem(path);
+                }
+            }
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.LogErrorFromException(ex);
+            return false;
+        }
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+  <Target Name="UpdateAssemblyVersions" DependsOnTargets="Version">
+    <UpdateAssemblyVersions AssemblyVersion="$(AssemblyVersion)" AssemblyFileVersion="$(AssemblyFileVersion)" AssemblyInformationalVersion="$(AssemblyInformationalVersion)" Files="@(AssemblyInfo)" />
+  </Target>
+  <UsingTask TaskName="UpdateAssemblyVersions" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+    <ParameterGroup>
+      <AssemblyVersion ParameterType="System.String" Required="true" />
+      <AssemblyFileVersion ParameterType="System.String" Required="true" />
+      <AssemblyInformationalVersion ParameterType="System.String" Required="true" />
+      <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Reference Include="System.Core" />
+      <Using Namespace="System" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Net" />
+      <Using Namespace="Microsoft.Build.Framework" />
+      <Using Namespace="Microsoft.Build.Utilities" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+        try
+        {
+            if (Files.Length > 0)
+            {
+                for (var i = 0; i < Files.Length; i++)
+                {
+                    ITaskItem item = Files[i];
+                    string path = item.GetMetadata("FullPath");
                 }
             }
             return true;
