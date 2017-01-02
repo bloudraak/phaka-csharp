@@ -1,59 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <PropertyGroup>
-        <NuGetPath>$(MSBuildThisFileDirectory)nuget.exe</NuGetPath>
-        <OutputDirectory>$(MSBuildThisFileDirectory)..\dist</OutputDirectory>
-    </PropertyGroup>
-    <ItemGroup>
-        <Solution Include="$(MSBuildThisFileDirectory)\..\**\*.sln">
-            <Properties>Configuration=Release</Properties> 
-        </Solution>
-    </ItemGroup>
-    <ItemGroup>
-        <NuSpec Include="$(MSBuildThisFileDirectory)\..\**\*.nuspec" />
-    </ItemGroup>
-    <Target Name="Build" DependsOnTargets="RestorePackages">
-        <MSBuild Projects="@(Solution)" Targets="Build">
-            <Output  
-                TaskParameter="TargetOutputs"  
-                ItemName="AssembliesBuiltByChildProjects" /> 
-        </MSBuild>
-        <Message Text="Assemblies: @(AssembliesBuiltByChildProjects)" />
-    </Target>
-    <Target Name="Clean">
-        <MSBuild Projects="@(Solution)" Targets="Clean" Properties="Configuration=Release">
-            <Output  
-                TaskParameter="TargetOutputs"  
-                ItemName="AssembliesBuiltByChildProjects" /> 
-        </MSBuild>
-        <RemoveDir Directories="$(OutputDirectory)" />
-    </Target>
-    <Target Name="Rebuild">
-        <MSBuild Projects="@(Solution)" Targets="Rebuild" Properties="Configuration=Release">
-            <Output  
-                TaskParameter="TargetOutputs"  
-                ItemName="AssembliesBuiltByChildProjects" /> 
-        </MSBuild>
-    </Target>
-    <Target Name="InstallNuGet">
-        <MsBuild Targets="_DownloadNuGet" Projects="$(MSBuildThisFileFullPath)" Properties="Configuration=$(Configuration);NuGetPath=$(NuGetPath)" />
-    </Target>
-    <Target Name="_DownloadNuGet">
-        <DownloadNuGet OutputFilename="$(NuGetPath)" Condition=" !Exists('$(NuGetPath)') " />
-    </Target>
-    <UsingTask TaskName="DownloadNuGet" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
-        <ParameterGroup>
-            <OutputFilename ParameterType="System.String" Required="true" />
-        </ParameterGroup>
-        <Task>
-            <Reference Include="System.Core" />
-            <Using Namespace="System" />
-            <Using Namespace="System.IO" />
-            <Using Namespace="System.Net" />
-            <Using Namespace="Microsoft.Build.Framework" />
-            <Using Namespace="Microsoft.Build.Utilities" />
-            <Code Type="Fragment" Language="cs">
-                <![CDATA[
+  <PropertyGroup>
+    <NuGetPath>$(MSBuildThisFileDirectory)nuget.exe</NuGetPath>
+    <OutputDirectory>$(MSBuildThisFileDirectory)..\dist</OutputDirectory>
+    <BuildNumber Condition="'$(BuildNumber)' == ''">$(BAMBOO_BUILDNUMBER)</BuildNumber>
+    <BuildNumber Condition="'$(BuildNumber)' == ''">1</BuildNumber>
+    <BranchName Condition="'$(BranchName)' == ''">$(BAMBOO_REPOSITORY_BRANCH_NAME)</BranchName>
+    <BranchName Condition="'$(BranchName)' == ''">develop</BranchName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Solution Include="$(MSBuildThisFileDirectory)\..\**\*.sln">
+      <Properties>Configuration=Release</Properties>
+    </Solution>
+  </ItemGroup>
+  <ItemGroup>
+    <NuSpec Include="$(MSBuildThisFileDirectory)\..\**\*.nuspec" />
+  </ItemGroup>
+  <Target Name="Build" DependsOnTargets="RestorePackages">
+    <MSBuild Projects="@(Solution)" Targets="Build">
+      <Output
+          TaskParameter="TargetOutputs"
+          ItemName="AssembliesBuiltByChildProjects" />
+    </MSBuild>
+    <Message Text="Assemblies: @(AssembliesBuiltByChildProjects)" />
+  </Target>
+  <Target Name="Clean">
+    <MSBuild Projects="@(Solution)" Targets="Clean" Properties="Configuration=Release">
+      <Output
+          TaskParameter="TargetOutputs"
+          ItemName="AssembliesBuiltByChildProjects" />
+    </MSBuild>
+    <RemoveDir Directories="$(OutputDirectory)" />
+  </Target>
+  <Target Name="Rebuild">
+    <MSBuild Projects="@(Solution)" Targets="Rebuild" Properties="Configuration=Release">
+      <Output
+          TaskParameter="TargetOutputs"
+          ItemName="AssembliesBuiltByChildProjects" />
+    </MSBuild>
+  </Target>
+  <Target Name="InstallNuGet">
+    <MsBuild Targets="_DownloadNuGet" Projects="$(MSBuildThisFileFullPath)" Properties="Configuration=$(Configuration);NuGetPath=$(NuGetPath)" />
+  </Target>
+  <Target Name="_DownloadNuGet">
+    <DownloadNuGet OutputFilename="$(NuGetPath)" Condition=" !Exists('$(NuGetPath)') " />
+  </Target>
+  <UsingTask TaskName="DownloadNuGet" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+    <ParameterGroup>
+      <OutputFilename ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Reference Include="System.Core" />
+      <Using Namespace="System" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Net" />
+      <Using Namespace="Microsoft.Build.Framework" />
+      <Using Namespace="Microsoft.Build.Utilities" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
                   try {
                       OutputFilename = Path.GetFullPath(OutputFilename);
                       WebClient webClient = new WebClient();
@@ -65,55 +69,58 @@
                       return false;
                   }
                 ]]>
-            </Code>
-        </Task>
-    </UsingTask>
-    <UsingTask TaskName="ReplaceExtension" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
-        <ParameterGroup>
-            <Extension ParameterType="System.String" Required="true" />
-            <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />  
-            <Result ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />  
-        </ParameterGroup>
-        <Task>
-            <Reference Include="System.Core" />
-            <Using Namespace="System" />
-            <Using Namespace="System.IO" />
-            <Using Namespace="System.Net" />
-            <Using Namespace="Microsoft.Build.Framework" />
-            <Using Namespace="Microsoft.Build.Utilities" />
-            <Code Type="Fragment" Language="cs">
-                <![CDATA[
-                  try {
-                        if (Files.Length > 0)  
-                        {  
-                            Result = new TaskItem[Files.Length];  
-                            for (int i = 0; i < Files.Length; i++)  
-                            {  
-                                ITaskItem item = Files[i];  
-                                string path = item.GetMetadata("FullPath");  
-                                path = System.IO.Path.ChangeExtension(path, Extension);
-                                Result[i] = new TaskItem(path);
-                            }  
-                        }  
-                        return true;
-                  }
-                  catch (Exception ex) {
-                      Log.LogErrorFromException(ex);
-                      return false;
-                  }
-                ]]>
-            </Code>
-        </Task>
-    </UsingTask>
-    <Target Name="RestorePackages" DependsOnTargets="InstallNuGet">
-        <Exec Command="$(NuGetPath) restore &quot;%(Solution.FullPath)&quot; -NonInteractive" LogStandardErrorAsError="true"  Condition="'@(Solution)'!=''" />
-    </Target>
-    <Target Name="Package" DependsOnTargets="InstallNuGet">
-        <ReplaceExtension Extension="csproj" Files="@(NuSpec)">  
-            <Output ItemName="ProjectPaths" TaskParameter="Result" />  
-        </ReplaceExtension>
-        <MakeDir Directories="$(OutputDirectory)"/>   
-        
-        <Exec Command="$(NuGetPath) pack &quot;%(ProjectPaths.Identity)&quot; -NonInteractive -OutputDirectory &quot;$(OutputDirectory)&quot; -IncludeReferencedProjects -Properties Configuration=Release" LogStandardErrorAsError="true"  Condition="'@(NuSpec)'!=''" />
-    </Target>
+      </Code>
+    </Task>
+  </UsingTask>
+  <UsingTask TaskName="ReplaceExtension" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+    <ParameterGroup>
+      <Extension ParameterType="System.String" Required="true" />
+      <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <Result ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Reference Include="System.Core" />
+      <Using Namespace="System" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Net" />
+      <Using Namespace="Microsoft.Build.Framework" />
+      <Using Namespace="Microsoft.Build.Utilities" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+        try
+        {
+            if (Files.Length > 0)
+            {
+                Result = new TaskItem[Files.Length];
+                for (var i = 0; i < Files.Length; i++)
+                {
+                    ITaskItem item = Files[i];
+                    string path = item.GetMetadata("FullPath");
+                    path = Path.ChangeExtension(path, Extension);
+                    Result[i] = new TaskItem(path);
+                }
+            }
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.LogErrorFromException(ex);
+            return false;
+        }
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+  <Target Name="RestorePackages" DependsOnTargets="InstallNuGet">
+    <Exec Command="$(NuGetPath) restore &quot;%(Solution.FullPath)&quot; -NonInteractive" LogStandardErrorAsError="true"  Condition="'@(Solution)'!=''" />
+  </Target>
+  <Target Name="Package" DependsOnTargets="InstallNuGet">
+    <ReplaceExtension Extension="csproj" Files="@(NuSpec)">
+      <Output ItemName="ProjectPaths" TaskParameter="Result" />
+    </ReplaceExtension>
+    <MakeDir Directories="$(OutputDirectory)"/>
+    <Message Text="BuildNumber: $(BuildNumber)" />
+    <Message Text="BranchName: $(BranchName)" />
+    <Exec Command="$(NuGetPath) pack &quot;%(ProjectPaths.Identity)&quot; -NonInteractive -OutputDirectory &quot;$(OutputDirectory)&quot; -IncludeReferencedProjects -Properties Configuration=Release" LogStandardErrorAsError="true"  Condition="'@(NuSpec)'!=''" />
+  </Target>
 </Project>
