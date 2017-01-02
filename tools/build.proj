@@ -4,7 +4,7 @@
         <NuGetPath>$(MSBuildThisFileDirectory)\nuget.exe</NuGetPath>
     </PropertyGroup>
     <ItemGroup>
-        <Solution Include="$(MSBuildThisFileDirectory)\**\*.sln">
+        <Solution Include="$(MSBuildThisFileDirectory)\..\**\*.sln">
             <Properties>Configuration=Release</Properties> 
         </Solution>
     </ItemGroup>
