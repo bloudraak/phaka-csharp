@@ -18,15 +18,15 @@
     <BranchName Condition="'$(BranchName)' == ''">develop</BranchName>
   </PropertyGroup>
   <ItemGroup>
-    <Solution Include="$(MSBuildThisFileDirectory)\..\**\*.sln">
+    <Solution Include="$(MSBuildThisFileDirectory)..\**\*.sln">
       <Properties>Configuration=Release</Properties>
     </Solution>
   </ItemGroup>
   <ItemGroup>
-    <NuSpec Include="$(MSBuildThisFileDirectory)\..\**\*.nuspec" />
+    <NuSpec Include="$(MSBuildThisFileDirectory)..\**\*.nuspec" />
   </ItemGroup>
   <ItemGroup>
-    <AssemblyInfo Include="$(MSBuildThisFileDirectory)\..\**\AssemblyInfo.cs" />
+    <AssemblyInfo Include="$(MSBuildThisFileDirectory)..\**\AssemblyInfo.cs" />
   </ItemGroup>
   <Target Name="Build" DependsOnTargets="RestorePackages">
     <MSBuild Projects="@(Solution)" Targets="Build">
@@ -220,10 +220,8 @@
       </Code>
     </Task>
   </UsingTask>
-  <Target Name="UpdateAssemblyVersions" DependsOnTargets="Version">
-    <UpdateAssemblyVersions AssemblyVersion="$(AssemblyVersion)" AssemblyFileVersion="$(AssemblyFileVersion)" AssemblyInformationalVersion="$(AssemblyInformationalVersion)" Files="@(AssemblyInfo)" />
-  </Target>
-  <UsingTask TaskName="UpdateAssemblyVersions" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+
+  <UsingTask TaskName="UpdateAssemblyVersionsX" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
     <ParameterGroup>
       <AssemblyVersion ParameterType="System.String" Required="true" />
       <AssemblyFileVersion ParameterType="System.String" Required="true" />
@@ -235,6 +233,7 @@
       <Using Namespace="System" />
       <Using Namespace="System.IO" />
       <Using Namespace="System.Net" />
+      <Using Namespace="System.Text.RegularExpressions"/>
       <Using Namespace="Microsoft.Build.Framework" />
       <Using Namespace="Microsoft.Build.Utilities" />
       <Code Type="Fragment" Language="cs">
@@ -247,6 +246,13 @@
                 {
                     ITaskItem item = Files[i];
                     string path = item.GetMetadata("FullPath");
+                    string contents = File.ReadAllText(path);
+                    
+                    contents = Regex.Replace(contents, "\\[\\s*assembly\\s*:\\s*AssemblyVersion\\s*\\(\\s*\".*\"\\s*\\)\\s*\\]", "[assembly: AssemblyVersion(\""+AssemblyVersion+"\")]");
+                    contents = Regex.Replace(contents, "\\[\\s*assembly\\s*:\\s*AssemblyFileVersion\\s*\\(\\s*\".*\"\\s*\\)\\s*\\]", "[assembly: AssemblyFileVersion(\""+AssemblyFileVersion+"\")]");
+                    contents = Regex.Replace(contents, "\\[\\s*assembly\\s*:\\s*AssemblyInformationalVersion\\s*\\(\\s*\".*\"\\s*\\)\\s*\\]", "[assembly: AssemblyInformationalVersion(\""+AssemblyInformationalVersion+"\")]");
+                    
+                    File.WriteAllText(path, contents);
                 }
             }
             return true;
@@ -260,6 +266,13 @@
       </Code>
     </Task>
   </UsingTask>
+  
+  <Target Name="UpdateAssemblyVersions" DependsOnTargets="Version">
+    <UpdateAssemblyVersionsX AssemblyVersion="$(AssemblyVersion)" 
+                            AssemblyFileVersion="$(AssemblyFileVersion)" 
+                            AssemblyInformationalVersion="$(AssemblyInformationalVersion)" 
+                            Files="@(AssemblyInfo)" />
+  </Target>
   <Target Name="RestorePackages" DependsOnTargets="InstallNuGet">
     <Exec Command="$(NuGetPath) restore &quot;%(Solution.FullPath)&quot; -NonInteractive" LogStandardErrorAsError="true"  Condition="'@(Solution)'!=''" />
   </Target>
